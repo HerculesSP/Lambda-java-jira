@@ -12,6 +12,7 @@ public class Handler implements RequestHandler<Object, String> {
     private S3 s3Origem;
     private S3 s3Destino;
     private Jira jira;
+    private ConexaoDB conexaoDB;
 
 
     public Handler() {
@@ -21,9 +22,14 @@ public class Handler implements RequestHandler<Object, String> {
         String jiraUrl = System.getenv("AWS_JIRA_URL");
         String jiraUsername = System.getenv("AWS_JIRA_USERNAME");
         String jiraApiKey = System.getenv("AWS_JIRA_API_KEY");
+        String dbIp = System.getenv("DB_IP");
+        String dbUsername = System.getenv("DB_USERNAME");
+        String dbName = System.getenv("DB_NAME");
+        String dbPassword = System.getenv("DB_PASSWORD");
         this.s3Origem = new S3(bucketOrigem, region);
         this.s3Destino = new S3(bucketDestino, region);
         this.jira = new Jira(jiraUrl, jiraUsername, jiraApiKey);
+        this.conexaoDB = new ConexaoDB(dbIp, dbName, dbUsername, dbPassword);
     }
 
     @Override
