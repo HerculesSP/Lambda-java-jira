@@ -9,16 +9,21 @@ import java.nio.file.Path;
 import java.util.List;
 
 public class Handler implements RequestHandler<Object, String> {
-    private final S3 s3Origem;
-    private final S3 s3Destino;
+    private S3 s3Origem;
+    private S3 s3Destino;
+    private Jira jira;
 
 
     public Handler() {
         String bucketOrigem = System.getenv("BUCKET_ORIGEM");
         String bucketDestino = System.getenv("BUCKET_DESTINO");
         Region region = Region.of(System.getenv("AWS_REGION"));
+        String jiraUrl = System.getenv("AWS_JIRA_URL");
+        String jiraUsername = System.getenv("AWS_JIRA_USERNAME");
+        String jiraApiKey = System.getenv("AWS_JIRA_API_KEY");
         this.s3Origem = new S3(bucketOrigem, region);
         this.s3Destino = new S3(bucketDestino, region);
+        this.jira = new Jira(jiraUrl, jiraUsername, jiraApiKey);
     }
 
     @Override
