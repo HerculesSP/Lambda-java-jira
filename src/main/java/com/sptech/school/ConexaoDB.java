@@ -14,4 +14,17 @@ public class ConexaoDB {
             System.out.println(e);
         }
     }
+
+    public String buscarEmpresa(String idCaixa){
+        try {
+            String sql = "SELECT e.Nome_Empresa FROM Empresa e " +
+                    "INNER JOIN Caixa c ON c.Fk_Empresa = e.Id_Empresa" +
+                    "WHERE c.Id_Caixa = " + idCaixa;
+            ResultSet rs = conexao.createStatement().executeQuery(sql);
+                return rs.getString(1);
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return null;
+    }
 }

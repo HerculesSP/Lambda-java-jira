@@ -37,8 +37,8 @@ public class Handler implements RequestHandler<Object, String> {
         try {
             List<String> csvs = s3Origem.buscarUltimaLinha();
 
-            for (String chave : csvs) {
-                System.out.println(chave);
+            for (String linha : csvs) {
+                System.out.println(linha);
                 //Path tempFile = Files.createTempFile("tmp-", ".csv");
             }
 
