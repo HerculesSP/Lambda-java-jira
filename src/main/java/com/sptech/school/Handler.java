@@ -6,6 +6,11 @@ import software.amazon.awssdk.regions.Region;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.List;
 
 public class Handler implements RequestHandler<Object, String> {
@@ -35,14 +40,34 @@ public class Handler implements RequestHandler<Object, String> {
     @Override
     public String handleRequest(Object input, Context context) {
         try {
+            String macaddress;
+            Date datetime;
+            String usuario;
+            String ip;
+            String isp;
             List<String> csvs = s3Origem.buscarUltimaLinha();
             String[] campos;
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            Date date = new Date();
             for (String linha : csvs) {
                 campos = linha.split(",");
+                macaddress = campos[0];
+                LocalDateTime ldt = LocalDateTime.parse(campos[1], formatter);
+                datetime = Date.from(ldt.atZone(ZoneId.systemDefault()).toInstant());
+                usuario = campos[9];
+                ip = campos[10];
+                isp = campos[11];
+                Coleta coleta = new Coleta(usuario, macaddress, datetime, ip, isp);
+                long diffMillis = Math.abs(date.getTime() - datetime.getTime());
+                long diffSeconds = diffMillis / 1000;
 
-                //Path tempFile = Files.createTempFile("tmp-", ".csv");
+                if (diffSeconds > 70) {
+
+                }
+
+
+
             }
-
             return "Processamento terminado com sucesso.";
         } catch (Exception e) {
             return "Processamento falhou.";

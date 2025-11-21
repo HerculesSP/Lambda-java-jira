@@ -20,18 +20,11 @@ public class Jira {
         this.auth = "Basic " + java.util.Base64.getEncoder().encodeToString((user + ":" + apiToken).getBytes());
     }
 
-    public String buscarUltimoChamadoAberto(String empresa, String maquina, String tipo) throws Exception {
-        String campoEmpresa = "empresa";
-        String campoMaquina = "maquina";
-        String campoTipo = "tipo";
+    public String buscarUltimoChamadoAberto(String maquina, String tipo) throws Exception {
 
-        String statusAberto = "To Do"; // status padrão para aberto
-
-        String jql = String.format("\"%s\" ~ \"%s\" AND \"%s\" ~ \"%s\" AND \"%s\" ~ \"%s\" AND status=\"%s\" ORDER BY created DESC",
-                campoEmpresa, empresa,
-                campoMaquina, maquina,
-                campoTipo, tipo,
-                statusAberto);
+        String jql = String.format("maquina = \"%s\" AND tipo = \"%s\" AND status in ('In progress', 'To do') ORDER BY created DESC",
+                maquina,
+                tipo);
 
         String url = baseUrl + "rest/api/2/search?jql=" + URLEncoder.encode(jql, "UTF-8") + "&maxResults=1&fields=id";
 
