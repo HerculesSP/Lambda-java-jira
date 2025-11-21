@@ -7,6 +7,7 @@ import software.amazon.awssdk.regions.Region;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
@@ -46,7 +47,6 @@ public class Handler implements RequestHandler<Object, String> {
             List<String> csvs = s3Origem.buscarUltimaLinha();
             String[] campos;
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-            Date date = new Date();
             for (String linha : csvs) {
                 campos = linha.split(",");
                 macaddress = campos[0];
@@ -56,11 +56,14 @@ public class Handler implements RequestHandler<Object, String> {
                 ip = campos[10];
                 isp = campos[11];
                 Coleta coleta = new Coleta(usuario, macaddress, datetime, ip, isp);
-                long diffMillis = Math.abs(date.getTime() - coleta.getDatetime().getTime());
+                String empresa = conexaoDB.buscarEmpresa(coleta.getMacaddress());
+                coleta.setEmpresa(empresa);
+                ZoneId zona = ZoneId.of("America/Sao_Paulo");
+                Date data = Date.from(ZonedDateTime.now(zona).toInstant());
+                long diffMillis = Math.abs(data.getTime() - coleta.getDatetime().getTime());
                 long diffSeconds = diffMillis / 1000;
                 String idChamado = jira.buscarUltimoChamadoAberto(coleta.getMacaddress());
                 if (diffSeconds > 70) {
-                    String empresa = conexaoDB.buscarEmpresa(coleta.getMacaddress());
                     if (idChamado == null) {
                         jira.criarChamado(empresa, coleta.getMacaddress());
                         // chamar aqui a lambda para arrumar, sei lá como fazwer isso

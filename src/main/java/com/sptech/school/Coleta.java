@@ -8,6 +8,7 @@ public class Coleta {
     private Date datetime;
     private String ip_publico;
     private String isp;
+    private String empresa;
 
     public Coleta(String usuario, String macaddress, Date datetime, String ip_publico, String isp) {
         this.usuario = usuario;
@@ -15,10 +16,6 @@ public class Coleta {
         this.datetime = datetime;
         this.ip_publico = ip_publico;
         this.isp = isp;
-    }
-
-    public String getUsuario() {
-        return usuario;
     }
 
     public String getMacaddress() {
@@ -29,20 +26,16 @@ public class Coleta {
         return datetime;
     }
 
-    public String getIp_publico() {
-        return ip_publico;
-    }
-
-    public String getIsp() {
-        return isp;
-    }
-
     public static String getCsvHeader() {
-        return "usuario,macaddress,datetime,ip_publico,isp\n";
+        return "usuario,macaddress,datetime,ip_publico,isp,empresa\n";
+    }
+
+    public void setEmpresa(String empresa) {
+        this.empresa = empresa;
     }
 
     public String toCsvRow() {
-        return usuario + "," + macaddress + "," + datetime + "," + ip_publico + "," + isp + "\n";
+        return usuario + "," + macaddress + "," + datetime + "," + ip_publico + "," + isp + empresa + "\n";
     }
 
     public String montaCSV(String existingContent) {
