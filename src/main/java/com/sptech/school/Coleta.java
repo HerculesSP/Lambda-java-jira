@@ -36,4 +36,23 @@ public class Coleta {
     public String getIsp() {
         return isp;
     }
+
+    public static String getCsvHeader() {
+        return "usuario,macaddress,datetime,ip_publico,isp\n";
+    }
+
+    public String toCsvRow() {
+        return usuario + "," + macaddress + "," + datetime + "," + ip_publico + "," + isp + "\n";
+    }
+
+    public String montaCSV(String existingContent) {
+        String conteudoFinal;
+
+        if (existingContent != null && !existingContent.isEmpty()) {
+            conteudoFinal = existingContent + toCsvRow();
+        } else {
+            conteudoFinal = Coleta.getCsvHeader() + toCsvRow();
+        }
+        return conteudoFinal;
+    }
 }

@@ -4,9 +4,7 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import software.amazon.awssdk.regions.Region;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.text.SimpleDateFormat;
+
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -58,15 +56,23 @@ public class Handler implements RequestHandler<Object, String> {
                 ip = campos[10];
                 isp = campos[11];
                 Coleta coleta = new Coleta(usuario, macaddress, datetime, ip, isp);
-                long diffMillis = Math.abs(date.getTime() - datetime.getTime());
+                long diffMillis = Math.abs(date.getTime() - coleta.getDatetime().getTime());
                 long diffSeconds = diffMillis / 1000;
-
+                String idChamado = jira.buscarUltimoChamadoAberto(coleta.getMacaddress());
                 if (diffSeconds > 70) {
-
+                    String empresa = conexaoDB.buscarEmpresa(coleta.getMacaddress());
+                    if (idChamado == null) {
+                        jira.criarChamado(empresa, coleta.getMacaddress());
+                        // chamar aqui a lambda para arrumar, sei lá como fazwer isso
+                    }
+                } else {
+                    if (idChamado != null) {
+                        jira.encerrarChamado(idChamado);
+                    }
                 }
-
-
-
+                String csv = s3Origem.buscaCSV(coleta.getMacaddress());
+                String csvCompleto = coleta.montaCSV(csv);
+                s3Destino.enviar(csvCompleto, coleta.getMacaddress());
             }
             return "Processamento terminado com sucesso.";
         } catch (Exception e) {

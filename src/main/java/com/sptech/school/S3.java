@@ -2,13 +2,12 @@ package com.sptech.school;
 
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
-
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,14 +58,42 @@ public class S3 {
     }
 
 
-    public void enviar(Path caminhoLocal, String key) {
-        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+    public void enviar(String csv, String maquina ) {
+        byte[] bytes = csv.getBytes(StandardCharsets.UTF_8);
+
+        PutObjectRequest putRequest = PutObjectRequest.builder()
                 .bucket(bucketName)
-                .key(key)
+                .key("diario/" + maquina + ".csv")
+                .contentLength((long) bytes.length)
+                .contentType("text/csv")
                 .build();
 
-        s3Client.putObject(putObjectRequest, RequestBody.fromFile(caminhoLocal));
+        try {
+            s3Client.putObject(putRequest, RequestBody.fromBytes(bytes));
+        } catch (Exception e) {
+            throw new RuntimeException("Falha no upload do arquivo CSV combinado.", e);
+        }
     }
 
+    public String buscaCSV(String maquina) {
+        try {
+            GetObjectRequest getRequest = GetObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key("diario/" + maquina + ".csv")
+                    .build();
+            String csvContent = s3Client.getObject(getRequest, ResponseTransformer.toBytes())
+                    .asUtf8String();
+            return csvContent;
+
+        } catch (S3Exception e) {
+            if (e.statusCode() == 404) {
+                return null;
+            } else {
+                throw new RuntimeException("Erro ao tentar obter o arquivo do S3: " + e.awsErrorDetails().errorMessage(), e);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Falha inesperada ao tentar obter o arquivo do S3.", e);
+        }
+    }
 }
 
