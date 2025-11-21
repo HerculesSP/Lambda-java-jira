@@ -36,9 +36,10 @@ public class Handler implements RequestHandler<Object, String> {
     public String handleRequest(Object input, Context context) {
         try {
             List<String> csvs = s3Origem.buscarUltimaLinha();
-
+            String[] campos;
             for (String linha : csvs) {
-                System.out.println(linha);
+                campos = linha.split(",");
+
                 //Path tempFile = Files.createTempFile("tmp-", ".csv");
             }
 
