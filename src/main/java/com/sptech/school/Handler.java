@@ -4,7 +4,6 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import software.amazon.awssdk.regions.Region;
 
-
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -18,7 +17,6 @@ public class Handler implements RequestHandler<Object, String> {
     private final S3 s3Destino;
     private final Jira jira;
     private final ConexaoDB conexaoDB;
-
 
     public Handler() {
         String bucketOrigem = System.getenv("BUCKET_ORIGEM");
@@ -48,46 +46,59 @@ public class Handler implements RequestHandler<Object, String> {
             List<String> csvs = s3Origem.buscarUltimaLinha();
             String[] campos;
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
             for (String linha : csvs) {
-                campos = linha.split(",");
+                campos = linha.split(";");
+
                 macaddress = campos[0];
+
+                // Interpreta o timestamp considerando fuso horário de São Paulo
                 LocalDateTime ldt = LocalDateTime.parse(campos[1], formatter);
-                datetime = Date.from(ldt.atZone(ZoneId.systemDefault()).toInstant());
+                ZonedDateTime zdt = ldt.atZone(ZoneId.of("America/Sao_Paulo"));
+                datetime = Date.from(zdt.toInstant());
+
                 usuario = campos[9];
                 ip = campos[10];
                 isp = campos[11];
                 Coleta coleta = new Coleta(usuario, macaddress, datetime, ip, isp);
+
                 String empresa = conexaoDB.buscarEmpresa(coleta.getMacaddress());
                 coleta.setEmpresa(empresa);
+
                 ZoneId zona = ZoneId.of("America/Sao_Paulo");
                 Date data = Date.from(ZonedDateTime.now(zona).toInstant());
+
                 long diffMillis = Math.abs(data.getTime() - coleta.getDatetime().getTime());
                 long diffSeconds = diffMillis / 1000;
+
                 String idChamado = jira.buscarUltimoChamadoAberto(coleta.getMacaddress());
+
                 if (diffSeconds > 70) {
                     if (idChamado == null) {
                         jira.criarChamado(empresa, coleta.getMacaddress());
-                        // chamar aqui a lambda para arrumar, sei lá como fazwer isso
+                        // Aqui pode chamar a Lambda para corrigir, se necessário
                     }
                 } else {
                     if (idChamado != null) {
                         jira.encerrarChamado(idChamado);
                     }
                 }
+
                 String ultimaLinha = s3Destino.buscarUltimaLinha(coleta.getMacaddress());
 
                 if (!Objects.equals(ultimaLinha, coleta.toCsvRow())) {
-                    String csv = s3Origem.buscaCSV(coleta.getMacaddress());
+                    String csv = s3Destino.buscaCSV(coleta.getMacaddress());
                     String csvCompleto = coleta.montaCSV(csv);
                     s3Destino.enviar(csvCompleto, coleta.getMacaddress());
                 }
 
+                System.out.println("diffSeconds: " + diffSeconds + ", idChamado: " + idChamado);
 
             }
             return "Processamento terminado com sucesso.";
         } catch (Exception e) {
+            System.out.println(e);
             return "Processamento falhou.";
         }
     }
 }
-

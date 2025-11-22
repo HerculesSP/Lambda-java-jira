@@ -1,5 +1,6 @@
 package com.sptech.school;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class Coleta {
@@ -35,7 +36,9 @@ public class Coleta {
     }
 
     public String toCsvRow() {
-        return usuario + "," + macaddress + "," + datetime + "," + ip_publico + "," + isp + empresa + "\n";
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String dataFormatada = sdf.format(datetime);
+        return usuario + ";" + macaddress + ";" + dataFormatada + ";" + ip_publico + ";" + isp + ";" + empresa + "\n";
     }
 
     public String montaCSV(String existingContent) {

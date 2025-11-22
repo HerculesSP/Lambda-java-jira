@@ -58,15 +58,14 @@ public class S3 {
     }
 
     public String buscarUltimaLinha(String maquina) {
-
         try {
             GetObjectRequest getRequest = GetObjectRequest.builder()
                     .bucket(bucketName)
                     .key("hercules/diario/" + maquina + ".csv")
                     .build();
-            String csvContent = s3Client.getObject(getRequest, ResponseTransformer.toBytes())
-                    .asUtf8String();
-            try (BufferedReader reader = new BufferedReader((new StringReader(csvContent)))) {
+            String csvContent = s3Client.getObject(getRequest, ResponseTransformer.toBytes()).asUtf8String();
+
+            try (BufferedReader reader = new BufferedReader(new StringReader(csvContent))) {
                 String linha;
                 String ultimaLinha = null;
 
@@ -77,18 +76,21 @@ public class S3 {
                 if (ultimaLinha != null) {
                     return ultimaLinha;
                 }
-
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
         } catch (S3Exception e) {
+            if ("NoSuchKey".equals(e.awsErrorDetails().errorCode())) {
+                return null;
+            }
             throw new RuntimeException("Erro ao tentar obter o arquivo do S3: " + e.awsErrorDetails().errorMessage(), e);
         } catch (Exception e) {
             throw new RuntimeException("Falha inesperada ao tentar obter o arquivo do S3.", e);
         }
         return null;
     }
+
 
 
     public void enviar(String csv, String maquina ) {
@@ -112,7 +114,7 @@ public class S3 {
         try {
             GetObjectRequest getRequest = GetObjectRequest.builder()
                     .bucket(bucketName)
-                    .key("diario/" + maquina + ".csv")
+                    .key("hercules/diario/" + maquina + ".csv")
                     .build();
             return s3Client.getObject(getRequest, ResponseTransformer.toBytes())
                     .asUtf8String();
