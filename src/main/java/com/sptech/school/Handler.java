@@ -11,12 +11,13 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 public class Handler implements RequestHandler<Object, String> {
-    private S3 s3Origem;
-    private S3 s3Destino;
-    private Jira jira;
-    private ConexaoDB conexaoDB;
+    private final S3 s3Origem;
+    private final S3 s3Destino;
+    private final Jira jira;
+    private final ConexaoDB conexaoDB;
 
 
     public Handler() {
@@ -73,9 +74,15 @@ public class Handler implements RequestHandler<Object, String> {
                         jira.encerrarChamado(idChamado);
                     }
                 }
-                String csv = s3Origem.buscaCSV(coleta.getMacaddress());
-                String csvCompleto = coleta.montaCSV(csv);
-                s3Destino.enviar(csvCompleto, coleta.getMacaddress());
+                String ultimaLinha = s3Destino.buscarUltimaLinha(coleta.getMacaddress());
+
+                if (!Objects.equals(ultimaLinha, coleta.toCsvRow())) {
+                    String csv = s3Origem.buscaCSV(coleta.getMacaddress());
+                    String csvCompleto = coleta.montaCSV(csv);
+                    s3Destino.enviar(csvCompleto, coleta.getMacaddress());
+                }
+
+
             }
             return "Processamento terminado com sucesso.";
         } catch (Exception e) {

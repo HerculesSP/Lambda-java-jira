@@ -12,8 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class S3 {
-    private S3Client s3Client;
-    private String bucketName;
+    private final S3Client s3Client;
+    private final String bucketName;
 
     public S3(String bucketName, Region region) {
         this.bucketName = bucketName;
@@ -57,13 +57,46 @@ public class S3 {
         return ultimasLinhas;
     }
 
+    public String buscarUltimaLinha(String maquina) {
+
+        try {
+            GetObjectRequest getRequest = GetObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key("hercules/diario/" + maquina + ".csv")
+                    .build();
+            String csvContent = s3Client.getObject(getRequest, ResponseTransformer.toBytes())
+                    .asUtf8String();
+            try (BufferedReader reader = new BufferedReader((new StringReader(csvContent)))) {
+                String linha;
+                String ultimaLinha = null;
+
+                while ((linha = reader.readLine()) != null) {
+                    ultimaLinha = linha;
+                }
+
+                if (ultimaLinha != null) {
+                    return ultimaLinha;
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        } catch (S3Exception e) {
+            throw new RuntimeException("Erro ao tentar obter o arquivo do S3: " + e.awsErrorDetails().errorMessage(), e);
+        } catch (Exception e) {
+            throw new RuntimeException("Falha inesperada ao tentar obter o arquivo do S3.", e);
+        }
+        return null;
+    }
+
 
     public void enviar(String csv, String maquina ) {
         byte[] bytes = csv.getBytes(StandardCharsets.UTF_8);
 
         PutObjectRequest putRequest = PutObjectRequest.builder()
                 .bucket(bucketName)
-                .key("diario/" + maquina + ".csv")
+                .key("hercules/diario/" + maquina + ".csv")
                 .contentLength((long) bytes.length)
                 .contentType("text/csv")
                 .build();
@@ -71,7 +104,7 @@ public class S3 {
         try {
             s3Client.putObject(putRequest, RequestBody.fromBytes(bytes));
         } catch (Exception e) {
-            throw new RuntimeException("Falha no upload do arquivo CSV combinado.", e);
+            throw new RuntimeException("Falha no upload do arquivo CSV.", e);
         }
     }
 
@@ -81,9 +114,8 @@ public class S3 {
                     .bucket(bucketName)
                     .key("diario/" + maquina + ".csv")
                     .build();
-            String csvContent = s3Client.getObject(getRequest, ResponseTransformer.toBytes())
+            return s3Client.getObject(getRequest, ResponseTransformer.toBytes())
                     .asUtf8String();
-            return csvContent;
 
         } catch (S3Exception e) {
             if (e.statusCode() == 404) {
