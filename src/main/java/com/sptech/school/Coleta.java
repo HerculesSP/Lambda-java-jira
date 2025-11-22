@@ -3,11 +3,11 @@ package com.sptech.school;
 import java.util.Date;
 
 public class Coleta {
-    private String usuario;
-    private String macaddress;
-    private Date datetime;
-    private String ip_publico;
-    private String isp;
+    private final String usuario;
+    private final String macaddress;
+    private final Date datetime;
+    private final String ip_publico;
+    private final String isp;
     private String empresa;
 
     public Coleta(String usuario, String macaddress, Date datetime, String ip_publico, String isp) {
