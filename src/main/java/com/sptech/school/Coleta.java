@@ -31,6 +31,15 @@ public class Coleta {
         return "usuario,macaddress,datetime,ip_publico,isp,empresa\n";
     }
 
+    public String getUsuario() {
+        return usuario;
+    }
+
+    public String getIp_publico() {
+        return ip_publico;
+    }
+
+
     public void setEmpresa(String empresa) {
         this.empresa = empresa;
     }

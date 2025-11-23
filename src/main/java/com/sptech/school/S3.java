@@ -129,5 +129,25 @@ public class S3 {
             throw new RuntimeException("Falha inesperada ao tentar obter o arquivo do S3.", e);
         }
     }
+
+    public String buscaChave(){
+        try {
+            GetObjectRequest getRequest = GetObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key("chave.pem")
+                    .build();
+            return s3Client.getObject(getRequest, ResponseTransformer.toBytes())
+                    .asUtf8String();
+
+        } catch (S3Exception e) {
+            if (e.statusCode() == 404) {
+                return null;
+            } else {
+                throw new RuntimeException("Erro ao tentar obter o arquivo do S3: " + e.awsErrorDetails().errorMessage(), e);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Falha inesperada ao tentar obter o arquivo do S3.", e);
+        }
+    }
 }
 

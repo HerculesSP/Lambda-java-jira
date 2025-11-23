@@ -7,12 +7,13 @@ public class ConexaoDB {
 
     public ConexaoDB(String ip, String db, String user, String password) {
         try {
-            String url = "jdbc:mysql://" + ip + ":3306/" + db + "?useSSL=false&serverTimezone=UTC";
+            String url = "jdbc:mysql://" + ip + ":3306/" + db + "?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true";
             this.conexao = DriverManager.getConnection(url, user, password);
         } catch (SQLException e) {
             throw new RuntimeException("Erro ao conectar ao banco de dados: " + e.getMessage(), e);
         }
     }
+
 
 
     public String buscarEmpresa(String idCaixa){
