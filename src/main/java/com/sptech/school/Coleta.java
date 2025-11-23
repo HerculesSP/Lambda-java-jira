@@ -28,7 +28,7 @@ public class Coleta {
     }
 
     public static String getCsvHeader() {
-        return "usuario,macaddress,datetime,ip_publico,isp,empresa\n";
+        return "usuario;macaddress;datetime;ip_publico;isp;empresa\n";
     }
 
     public String getUsuario() {
